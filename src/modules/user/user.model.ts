@@ -3,7 +3,7 @@ import { IUser } from "./user.interface";
 
 const UserSchema = new Schema<IUser>(
   {
-    username: {
+    email: {
       type: String,
       required: true,
     },
@@ -14,8 +14,8 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       required: false,
-      enum: ["ADMIN", "AGENT"],
-      default: "AGENT",
+      enum: ["ADMIN", "USER"],
+      default: "USER",
     },
     phone: {
       type: String,

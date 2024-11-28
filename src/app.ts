@@ -5,14 +5,12 @@ import body_parser from "body-parser";
 import cookieParser from "cookie-parser";
 import globalErrorHandler from "./middleware/globalErrorHandler";
 import { UserRoutes } from "./modules/user/user.route";
+import { FlightsRoutes } from "./modules/flights/flights.route";
 
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-];
+const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
 
 app.use(
   cors({
@@ -24,7 +22,7 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "PATCH", "POST", "PUT", "DELETE","OPTIONS"],
+    methods: ["GET", "PATCH", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Custom-Header"],
   })
 );
@@ -39,12 +37,13 @@ app.get("/", async (req, res) => {
   res.status(200).json({
     statusCode: 200,
     success: true,
-    message: "Mayan World is working fine in port 5000 ",
+    message: "Flight Booking System is working fine in port 5000 ",
     data: null,
   });
 });
 //routes -------------------------------------
-app.use("/api/v1/user", UserRoutes);
+app.use("/api", UserRoutes);
+app.use("/api/flights", FlightsRoutes);
 
 //--------------------------------------------
 

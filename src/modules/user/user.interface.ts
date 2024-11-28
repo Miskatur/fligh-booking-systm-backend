@@ -4,7 +4,7 @@ export type IUser = {
   name: string;
   location: string;
   phone: string;
-  username: string;
+  email: string;
   password: string;
-  role: string;
+  role: "ADMIN" | "USER";
 } & Document;

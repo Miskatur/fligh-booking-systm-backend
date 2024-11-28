@@ -13,7 +13,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     if (!isVerified) {
       throw new ApiError(409, "Invalid token");
     } else {
-      req.username = isVerified.username;
+      req.email = isVerified.email;
       req.role = isVerified.role;
       req.name = isVerified.name;
       req.id = isVerified.id;

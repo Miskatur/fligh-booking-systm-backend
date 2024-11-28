@@ -7,11 +7,11 @@ import User from "./user.model";
 
 class Service {
   async registerUser(payload: IUser) {
-    const { username } = payload;
-    const isExistUser = await User.findOne({ username });
+    const { email } = payload;
+    const isExistUser = await User.findOne({ email });
 
     if (isExistUser) {
-      throw new ApiError(409, "Username already in use");
+      throw new ApiError(409, "User Email already in use");
     }
 
     const hashedPassword = await HashPassword.hash(payload?.password);
@@ -19,12 +19,12 @@ class Service {
 
     const user = new User(payload);
     await user.save();
-    return user;
+    return true;
   }
 
-  async loginUser(payload: { username: string; password: string }) {
+  async loginUser(payload: { email: string; password: string }) {
     const isUserExist: any = await User.findOne({
-      username: payload?.username,
+      email: payload?.email,
     });
     if (!isUserExist) {
       throw new ApiError(404, "User not found");
@@ -38,7 +38,7 @@ class Service {
     }
 
     const userData: any = await User.findOne(
-      { username: payload.username },
+      { email: payload.email },
       {
         password: 0,
       }
@@ -48,7 +48,7 @@ class Service {
       {
         id: userData.id,
         name: userData.name,
-        username: userData.username,
+        email: userData.email,
         role: userData.role,
       },
       process.env.JWT_ACCESS_TOKEN_SECRET as Secret,
@@ -58,25 +58,6 @@ class Service {
       userData,
       accessToken: token,
     };
-  }
-
-  async getAllUsers() {
-    const users = await User.find({
-      role: { $ne: "ADMIN" },
-    }).sort({ createdAt: -1 });
-    return users;
-  }
-
-  async deleteUser(id: string) {
-    const isUserExist = await User.findById(id);
-
-    if (!isUserExist) {
-      throw new ApiError(404, "User not found");
-    }
-
-    const result = await User.findByIdAndDelete(id).select({ id: 1 });
-
-    return result;
   }
 }
 
