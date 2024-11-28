@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.post("/", verifyToken, FlightsController.createAFlight);
 router.get("/:id", FlightsController.getAFlightInfo);
+router.delete("/:id", verifyToken, FlightsController.deleteAFlight);
 
 export const FlightsRoutes = router;

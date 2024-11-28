@@ -18,6 +18,7 @@ class Controller extends BaseController {
       data: result,
     });
   });
+
   getAFlightInfo = this.catchAsync(async (req: Request, res: Response) => {
     const result = await FlightsService.getAFlightInfo(req.params.id);
 
@@ -25,6 +26,20 @@ class Controller extends BaseController {
       statusCode: 200,
       success: true,
       message: "Flight data retrieved successfully",
+      data: result,
+    });
+  });
+
+  deleteAFlight = this.catchAsync(async (req: Request, res: Response) => {
+    const role = req.role;
+    if (role !== "ADMIN") {
+      throw new ApiError(401, "You are not allowed to delete flights");
+    }
+    const result = await FlightsService.deleteAFlight(req.params.id);
+    this.sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Flight data deleted successfully",
       data: result,
     });
   });

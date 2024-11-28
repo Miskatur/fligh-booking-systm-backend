@@ -5,6 +5,14 @@ import Flights from "./flights.model";
 
 class Service {
   async createAFlight(data: IFlights) {
+    const isFlightNumberExist = await Flights.findOne({
+      flight_number: data.flight_number,
+      date: data.date,
+      time: data.time,
+    });
+    if (isFlightNumberExist) {
+      throw new ApiError(400, "Flight number already exists");
+    }
     const flight = await new Flights({
       ...data,
       remaining_seat: data.capacity,
@@ -37,6 +45,14 @@ class Service {
       throw new ApiError(400, "Couldn't find the flight");
     }
     return info;
+  }
+
+  async deleteAFlight(id: string) {
+    const result = await Flights.findByIdAndDelete(id).select({ id: 1 });
+    if (!result) {
+      throw new ApiError(404, "Flight not found");
+    }
+    return result;
   }
 }
 

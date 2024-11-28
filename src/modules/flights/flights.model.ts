@@ -10,7 +10,6 @@ const FlightSchema = new Schema<IFlights>(
     flight_number: {
       type: String,
       required: true,
-      unique: true,
     },
     origin: {
       type: String,
@@ -49,6 +48,8 @@ const FlightSchema = new Schema<IFlights>(
     },
   }
 );
+
+FlightSchema.index({ flight_number: 1, date: 1, time: 1 }, { unique: true });
 
 const Flights = mongoose.model<IFlights>("Flights", FlightSchema);
 export default Flights;
