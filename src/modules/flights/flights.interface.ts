@@ -11,4 +11,5 @@ export type IFlights = {
   available_seats?: ISeats["_id"];
   date: Date;
   time: string;
+  price: number;
 } & Document;

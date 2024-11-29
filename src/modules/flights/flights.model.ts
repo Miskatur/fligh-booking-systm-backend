@@ -40,6 +40,10 @@ const FlightSchema = new Schema<IFlights>(
       type: String,
       required: true,
     },
+    price: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,

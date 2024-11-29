@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import globalErrorHandler from "./middleware/globalErrorHandler";
 import { UserRoutes } from "./modules/user/user.route";
 import { FlightsRoutes } from "./modules/flights/flights.route";
+import { BookingsRoutes } from "./modules/bookings/bookings.route";
 
 dotenv.config();
 const app = express();
@@ -44,6 +45,7 @@ app.get("/", async (req, res) => {
 //routes -------------------------------------
 app.use("/api", UserRoutes);
 app.use("/api/flights", FlightsRoutes);
+app.use("/api/bookings", BookingsRoutes);
 
 //--------------------------------------------
 

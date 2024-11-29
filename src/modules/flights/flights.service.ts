@@ -141,10 +141,17 @@ class Service {
         }
       }
 
-      const updatedFlight = await Flights.findByIdAndUpdate(id, payload, {
-        new: true,
-        session,
-      }).populate("available_seats");
+      const updatedFlight = await Flights.findByIdAndUpdate(
+        id,
+        {
+          ...payload,
+          remaining_seat: payload.capacity,
+        },
+        {
+          new: true,
+          session,
+        }
+      ).populate("available_seats");
 
       await session.commitTransaction();
       session.endSession();
