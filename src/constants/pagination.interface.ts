@@ -6,8 +6,7 @@ export type IPaginationOptions = {
 };
 
 export type IFilterRequest = {
-  searchQuery?: string;
-  minDate?: string;
-  maxDate?: string;
-  agent?: string;
+  origin?: string;
+  destination?: string;
+  date?: string;
 };

@@ -5,6 +5,4 @@ export const paginationFields: string[] = [
   "sortOrder",
 ];
 
-export const productSortFields = ["searchQuery", "minDate", "maxDate", "agent"];
-
-export const searchableFields = ["fullName", "phoneNumber"];
+export const productSortFields = ["origin", "destination", "date"];
