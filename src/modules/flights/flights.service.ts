@@ -14,21 +14,28 @@ class Service {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
+      // creating a flight data
       const flight = await new Flights({
         ...data,
         remaining_seat: data.capacity,
       }).save({ session });
+
+      // creating seats data for the flight
       const seats = Array.from({ length: data.capacity }, (_, i) => ({
         seatNumber: `${Math.floor(i / 6) + 1}${String.fromCharCode(
           65 + (i % 6)
         )}`,
         status: "AVAILABLE",
       }));
+
+      // adding seats to our Seats collection for a cleaner db collection
       const seatDoc = await new Seats({
         date: data.date,
         flight_info: flight._id,
         seats,
       }).save({ session });
+
+      // getting the seats data so that we can track
       flight.available_seats = seatDoc._id;
       await flight.save({ session });
       await session.commitTransaction();
@@ -85,7 +92,7 @@ class Service {
       if (!seatDoc) {
         throw new ApiError(404, "Seats information not found for this flight");
       }
-
+      // if any of the seat isAnySeatBooked, then we need to prevent it from updating
       const isAnySeatBooked = seatDoc.seats.some(
         (seat) => seat.status === "BOOKED"
       );
@@ -96,12 +103,12 @@ class Service {
         );
       }
 
-      // Handle capacity changes
+      // Handling seat capacity changes when there is no seat booked yet
       if (payload.capacity && payload.capacity !== isFlightExist.capacity) {
         const seatCountDifference = payload.capacity - isFlightExist.capacity;
 
         if (seatCountDifference > 0) {
-          // Add new seats
+          // Adding new seats
           const newSeats = Array.from(
             { length: seatCountDifference },
             (_, i) => ({
@@ -117,15 +124,15 @@ class Service {
             { session }
           );
         } else if (seatCountDifference < 0) {
-          // Remove excess seats
+          // Removing excess seats
           const seatsToRemoveCount = Math.abs(seatCountDifference);
 
-          // Identify the seat numbers to remove (last N seats)
+          // Identifying the seat numbers to remove (last N=deference seats that was calculated by us according to the provided capacity)
           const seatsToRemove = seatDoc.seats
             .slice(-seatsToRemoveCount)
             .map((seat) => seat.seatNumber);
 
-          // Remove the identified seats from the collection
+          // Removing the identified seats from the collection
           await Seats.updateOne(
             { flight_info: id },
             { $pull: { seats: { seatNumber: { $in: seatsToRemove } } } },
@@ -134,7 +141,6 @@ class Service {
         }
       }
 
-      // Update flight
       const updatedFlight = await Flights.findByIdAndUpdate(id, payload, {
         new: true,
         session,
