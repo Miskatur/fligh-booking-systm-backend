@@ -5,6 +5,7 @@ import User from "../user/user.model";
 import { IBooking } from "./bookings.interface";
 import Seats from "../seats/seats.model";
 import Bookings from "./bookings.model";
+import { IFlights } from "../flights/flights.interface";
 
 class Service {
   async bookAFlight(payload: IBooking, user_id: string) {
@@ -87,6 +88,166 @@ class Service {
       session.endSession();
 
       return booking;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  }
+
+  async getAllBookingByUser(userId: string) {
+    const isUserExist = await User.findById(userId);
+    if (!isUserExist) {
+      throw new ApiError(404, "User not found");
+    }
+    const result = await Bookings.find({
+      user: userId,
+    })
+      .populate({
+        path: "flight_info",
+      })
+      .populate("user");
+
+    return result;
+  }
+
+  async getAllBookings() {
+    const result = await Bookings.find({})
+      .populate({
+        path: "flight_info",
+      })
+      .populate("user");
+
+    return result;
+  }
+
+  async cancelBooking(bookingId: string) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Fetch the booking
+      const booking = await Bookings.findOne({ _id: bookingId }).populate(
+        "flight_info"
+      );
+      if (!booking) {
+        throw new ApiError(404, "Booking not found");
+      }
+
+      const flight = booking.flight_info as IFlights;
+      const currentDate = new Date();
+
+      // Ensure cancellation is before the flight date
+      if (new Date(flight.date) <= currentDate) {
+        throw new ApiError(
+          400,
+          "Cannot cancel a booking after the flight date"
+        );
+      }
+
+      // Restore seats in the Seats collection
+      const seatUpdateResult = await Seats.updateOne(
+        { flight_info: flight._id },
+        {
+          $set: {
+            "seats.$[seat].status": "AVAILABLE",
+          },
+        },
+        {
+          arrayFilters: [{ "seat.seatNumber": { $in: booking.seats } }],
+          session,
+        }
+      );
+      if (seatUpdateResult.modifiedCount === 0) {
+        throw new ApiError(500, "Failed to restore seats.");
+      }
+      // Update remaining seats in Flights collection
+      const flightUpdateResult = await Flights.updateOne(
+        { _id: flight._id },
+        {
+          $inc: { remaining_seat: booking.number_of_seats },
+        },
+        { session }
+      );
+      if (flightUpdateResult.modifiedCount === 0) {
+        throw new ApiError(500, "Failed to update remaining seats.");
+      }
+      // Mark the booking as CANCELLED
+      booking.booking_status = "CANCELLED";
+      await booking.save({ session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return "Booking cancelled and seats restored successfully";
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  }
+
+  async deleteABooking(bookingId: string) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const booking = await Bookings.findById(bookingId).session(session);
+      if (!booking) {
+        throw new ApiError(404, "Booking not found! ");
+      }
+
+      if (booking.booking_status === "CANCELLED") {
+        await Bookings.findByIdAndDelete(bookingId, { session });
+
+        await session.commitTransaction();
+        session.endSession();
+        return "Booking was already canceled and has been deleted.";
+      }
+
+      // Fetch the associated flight
+      const flight = await Flights.findById(booking.flight_info).session(
+        session
+      );
+      if (!flight) {
+        throw new ApiError(404, "Flight not found");
+      }
+
+      // Restore the seats in the Seats collection
+      const seatUpdateResult = await Seats.updateOne(
+        { flight_info: flight._id },
+        {
+          $set: { "seats.$[seat].status": "AVAILABLE" },
+        },
+        {
+          arrayFilters: [{ "seat.seatNumber": { $in: booking.seats } }],
+          session,
+        }
+      );
+      if (seatUpdateResult.modifiedCount === 0) {
+        throw new ApiError(500, "Failed to restore seats.");
+      }
+
+      // Update remaining seats in Flights collection
+      const flightUpdateResult = await Flights.updateOne(
+        { _id: flight._id },
+        {
+          $inc: { remaining_seat: booking.number_of_seats },
+        },
+        { session }
+      );
+
+      if (flightUpdateResult.modifiedCount === 0) {
+        throw new ApiError(500, "Failed to update remaining seats.");
+      }
+
+      // Delete the booking
+      await Bookings.findByIdAndDelete(bookingId, { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return "Booking deleted and seats restored successfully";
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
