@@ -170,7 +170,7 @@ class Service {
   ) {
     const { limit, page, skip, sortBy, sortOrder } =
       paginationHelpers.calculatePagination(options);
-    const { origin, destination, date } = filters;
+    const { origin, destination, date, admin } = filters;
 
     const andConditions = [];
 
@@ -184,28 +184,27 @@ class Service {
       andConditions.push({ date: date });
     }
     const now = new Date();
+
+    const orConditions =
+      admin === "1"
+        ? []
+        : [
+            {
+              date: now.toISOString().split("T")[0],
+              time: { $gt: now.toTimeString().slice(0, 5) },
+            },
+            { date: { $gt: now.toISOString().split("T")[0] } },
+          ];
     const whereConditions: any =
       andConditions.length > 0
         ? {
             $and: andConditions,
             remaining_seat: { $gt: 0 },
-            $or: [
-              {
-                date: now.toISOString().split("T")[0],
-                time: { $gt: now.toTimeString().slice(0, 5) },
-              },
-              { date: { $gt: now.toISOString().split("T")[0] } },
-            ],
+            ...(orConditions.length > 0 && { $or: orConditions }),
           }
         : {
             remaining_seat: { $gt: 0 },
-            $or: [
-              {
-                date: now.toISOString().split("T")[0],
-                time: { $gt: now.toTimeString().slice(0, 5) },
-              },
-              { date: { $gt: now.toISOString().split("T")[0] } },
-            ],
+            ...(orConditions.length > 0 && { $or: orConditions }),
           };
 
     const sortConditions: { [key: string]: SortOrder } = {};

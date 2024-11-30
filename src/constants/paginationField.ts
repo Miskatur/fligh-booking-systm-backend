@@ -5,4 +5,4 @@ export const paginationFields: string[] = [
   "sortOrder",
 ];
 
-export const productSortFields = ["origin", "destination", "date"];
+export const productSortFields = ["origin", "destination", "date", "admin"];

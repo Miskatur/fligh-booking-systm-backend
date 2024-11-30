@@ -9,4 +9,5 @@ export type IFilterRequest = {
   origin?: string;
   destination?: string;
   date?: string;
+  admin?: string;
 };

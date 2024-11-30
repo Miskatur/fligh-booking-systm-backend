@@ -7,4 +7,4 @@ exports.paginationFields = [
     "sortBy",
     "sortOrder",
 ];
-exports.productSortFields = ["origin", "destination", "date"];
+exports.productSortFields = ["origin", "destination", "date", "admin"];
