@@ -16,6 +16,8 @@ exports.BookingsController = void 0;
 const baseController_1 = __importDefault(require("../../shared/baseController"));
 const error_1 = __importDefault(require("../../middleware/error"));
 const bookings_service_1 = require("./bookings.service");
+const pickQueries_1 = __importDefault(require("../../shared/pickQueries"));
+const paginationField_1 = require("../../constants/paginationField");
 class Controller extends baseController_1.default {
     constructor() {
         super(...arguments);
@@ -49,10 +51,11 @@ class Controller extends baseController_1.default {
         }));
         this.getAllBookings = this.catchAsync((req, res) => __awaiter(this, void 0, void 0, function* () {
             const role = req.role;
+            const options = (0, pickQueries_1.default)(req.query, paginationField_1.paginationFields);
             if (role !== "ADMIN") {
                 throw new error_1.default(401, "You are not allowed to retrieve all bookings");
             }
-            const result = yield bookings_service_1.BookingsService.getAllBookings();
+            const result = yield bookings_service_1.BookingsService.getAllBookings(options);
             this.sendResponse(res, {
                 statusCode: 200,
                 success: true,

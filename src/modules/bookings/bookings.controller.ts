@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import BaseController from "../../shared/baseController";
 import ApiError from "../../middleware/error";
 import { BookingsService } from "./bookings.service";
+import pickQueries from "../../shared/pickQueries";
+import { paginationFields } from "../../constants/paginationField";
 
 class Controller extends BaseController {
   bookAFlight = this.catchAsync(async (req: Request, res: Response) => {
@@ -36,10 +38,11 @@ class Controller extends BaseController {
   });
   getAllBookings = this.catchAsync(async (req: Request, res: Response) => {
     const role = req.role;
+    const options = pickQueries(req.query, paginationFields);
     if (role !== "ADMIN") {
       throw new ApiError(401, "You are not allowed to retrieve all bookings");
     }
-    const result = await BookingsService.getAllBookings();
+    const result = await BookingsService.getAllBookings(options);
 
     this.sendResponse(res, {
       statusCode: 200,

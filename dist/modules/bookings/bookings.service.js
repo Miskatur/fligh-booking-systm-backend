@@ -19,6 +19,7 @@ const flights_model_1 = __importDefault(require("../flights/flights.model"));
 const user_model_1 = __importDefault(require("../user/user.model"));
 const seats_model_1 = __importDefault(require("../seats/seats.model"));
 const bookings_model_1 = __importDefault(require("./bookings.model"));
+const pagination_1 = require("../../shared/pagination");
 class Service {
     bookAFlight(payload, user_id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -96,14 +97,30 @@ class Service {
             return result;
         });
     }
-    getAllBookings() {
+    getAllBookings(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { limit, page, skip, sortBy, sortOrder } = pagination_1.paginationHelpers.calculatePagination(options);
+            const sortConditions = {};
+            if (sortBy && sortOrder) {
+                sortConditions[sortBy] = sortOrder;
+            }
             const result = yield bookings_model_1.default.find({})
                 .populate({
                 path: "flight_info",
             })
-                .populate("user");
-            return result;
+                .populate("user")
+                .sort(sortConditions)
+                .skip(skip)
+                .limit(limit);
+            const total = yield bookings_model_1.default.countDocuments();
+            return {
+                meta: {
+                    page,
+                    limit,
+                    total,
+                },
+                data: result,
+            };
         });
     }
     cancelBooking(bookingId) {

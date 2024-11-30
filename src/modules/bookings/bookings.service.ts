@@ -6,6 +6,9 @@ import { IBooking } from "./bookings.interface";
 import Seats from "../seats/seats.model";
 import Bookings from "./bookings.model";
 import { IFlights } from "../flights/flights.interface";
+import { IPaginationOptions } from "../../constants/pagination.interface";
+import { paginationHelpers } from "../../shared/pagination";
+import { SortOrder } from "mongoose";
 
 class Service {
   async bookAFlight(payload: IBooking, user_id: string) {
@@ -111,14 +114,30 @@ class Service {
     return result;
   }
 
-  async getAllBookings() {
+  async getAllBookings(options: IPaginationOptions) {
+    const { limit, page, skip, sortBy, sortOrder } =
+      paginationHelpers.calculatePagination(options);
+    const sortConditions: { [key: string]: SortOrder } = {};
+    if (sortBy && sortOrder) {
+      sortConditions[sortBy] = sortOrder;
+    }
     const result = await Bookings.find({})
       .populate({
         path: "flight_info",
       })
-      .populate("user");
-
-    return result;
+      .populate("user")
+      .sort(sortConditions)
+      .skip(skip)
+      .limit(limit);
+    const total = await Bookings.countDocuments();
+    return {
+      meta: {
+        page,
+        limit,
+        total,
+      },
+      data: result,
+    };
   }
 
   async cancelBooking(bookingId: string) {
