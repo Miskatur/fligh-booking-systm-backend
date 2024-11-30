@@ -11,7 +11,7 @@ import { BookingsRoutes } from "./modules/bookings/bookings.route";
 dotenv.config();
 const app = express();
 
-const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const allowedOrigins = ["http://localhost:5173"];
 
 app.use(
   cors({
