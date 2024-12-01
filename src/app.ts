@@ -11,7 +11,10 @@ import { BookingsRoutes } from "./modules/bookings/bookings.route";
 dotenv.config();
 const app = express();
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://flight-booking-system-frontend-two.vercel.app",
+];
 
 app.use(
   cors({
