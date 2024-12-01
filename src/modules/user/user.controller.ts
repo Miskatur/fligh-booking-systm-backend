@@ -25,7 +25,28 @@ class Controller extends BaseController {
       data: result,
     });
   });
- 
+  changePassword = this.catchAsync(async (req: Request, res: Response) => {
+    const user_id = req.id;
+    const result = await UserService.changePassword(user_id, req.body);
+
+    this.sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Password changed successfully",
+      data: result,
+    });
+  });
+  updateUser = this.catchAsync(async (req: Request, res: Response) => {
+    const user_id = req.id;
+    const result = await UserService.updateUser(user_id, req.body);
+
+    this.sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile updated successfully",
+      data: result,
+    });
+  });
 }
 
 export const UserController = new Controller();

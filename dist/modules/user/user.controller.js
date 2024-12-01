@@ -36,6 +36,26 @@ class Controller extends baseController_1.default {
                 data: result,
             });
         }));
+        this.changePassword = this.catchAsync((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const user_id = req.id;
+            const result = yield user_service_1.UserService.changePassword(user_id, req.body);
+            this.sendResponse(res, {
+                statusCode: 200,
+                success: true,
+                message: "Password changed successfully",
+                data: result,
+            });
+        }));
+        this.updateUser = this.catchAsync((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const user_id = req.id;
+            const result = yield user_service_1.UserService.updateUser(user_id, req.body);
+            this.sendResponse(res, {
+                statusCode: 200,
+                success: true,
+                message: "Profile updated successfully",
+                data: result,
+            });
+        }));
     }
 }
 exports.UserController = new Controller();

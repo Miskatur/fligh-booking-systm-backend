@@ -80,6 +80,15 @@ class Controller extends baseController_1.default {
                 data: result,
             });
         }));
+        this.getAllDestinations = this.catchAsync((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const result = yield flights_service_1.FlightsService.getAllDestinations();
+            this.sendResponse(res, {
+                statusCode: 200,
+                success: true,
+                message: "All available location retrieved successfully",
+                data: result,
+            });
+        }));
     }
 }
 exports.FlightsController = new Controller();

@@ -52,11 +52,42 @@ class Service {
                 name: userData.name,
                 email: userData.email,
                 role: userData.role,
+                phone: userData.phone,
             }, process.env.JWT_ACCESS_TOKEN_SECRET, "1yr");
             return {
                 userData,
                 accessToken: token,
             };
+        });
+    }
+    changePassword(user_id, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const IsUserAvailable = yield user_model_1.default.findById(user_id);
+            if (!IsUserAvailable) {
+                throw new error_1.default(404, "User not found");
+            }
+            const isOldPasswordCorrect = yield hashPassword_1.HashPassword.compare(payload === null || payload === void 0 ? void 0 : payload.oldPassword, IsUserAvailable === null || IsUserAvailable === void 0 ? void 0 : IsUserAvailable.password);
+            if (!isOldPasswordCorrect) {
+                throw new error_1.default(403, "Old password is incorrect");
+            }
+            const hashedNewPassword = yield hashPassword_1.HashPassword.hash(payload === null || payload === void 0 ? void 0 : payload.newPassword);
+            IsUserAvailable.password = hashedNewPassword;
+            yield IsUserAvailable.save();
+            return IsUserAvailable;
+        });
+    }
+    updateUser(user_id, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const isUserExist = yield user_model_1.default.findById(user_id);
+            if (!isUserExist) {
+                throw new error_1.default(404, "User not found");
+            }
+            const result = yield user_model_1.default.findByIdAndUpdate(user_id, payload, {
+                new: true,
+            }).select({
+                password: 0,
+            });
+            return result;
         });
     }
 }

@@ -11,6 +11,9 @@ import { paginationHelpers } from "../../shared/pagination";
 
 class Service {
   async createAFlight(data: IFlights) {
+    if (data.capacity <= 0) {
+      throw new Error("Capacity must be greater than zero.");
+    }
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -226,6 +229,14 @@ class Service {
       },
       data: result,
     };
+  }
+
+  async getAllDestinations() {
+    const origins = await Flights.distinct("origin");
+    const destinations = await Flights.distinct("destination");
+
+    const allLocations = Array.from(new Set([...origins, ...destinations]));
+    return allLocations;
   }
 }
 

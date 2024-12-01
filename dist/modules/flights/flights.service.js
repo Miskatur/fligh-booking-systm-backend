@@ -21,6 +21,9 @@ const pagination_1 = require("../../shared/pagination");
 class Service {
     createAFlight(data) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (data.capacity <= 0) {
+                throw new Error("Capacity must be greater than zero.");
+            }
             const session = yield mongoose_1.default.startSession();
             session.startTransaction();
             try {
@@ -180,6 +183,14 @@ class Service {
                 },
                 data: result,
             };
+        });
+    }
+    getAllDestinations() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const origins = yield flights_model_1.default.distinct("origin");
+            const destinations = yield flights_model_1.default.distinct("destination");
+            const allLocations = Array.from(new Set([...origins, ...destinations]));
+            return allLocations;
         });
     }
 }

@@ -50,6 +50,7 @@ class Service {
         name: userData.name,
         email: userData.email,
         role: userData.role,
+        phone: userData.phone,
       },
       process.env.JWT_ACCESS_TOKEN_SECRET as Secret,
       "1yr"
@@ -58,6 +59,41 @@ class Service {
       userData,
       accessToken: token,
     };
+  }
+  async changePassword(
+    user_id: string,
+    payload: { oldPassword: string; newPassword: string }
+  ) {
+    const IsUserAvailable = await User.findById(user_id);
+
+    if (!IsUserAvailable) {
+      throw new ApiError(404, "User not found");
+    }
+    const isOldPasswordCorrect = await HashPassword.compare(
+      payload?.oldPassword,
+      IsUserAvailable?.password
+    );
+    if (!isOldPasswordCorrect) {
+      throw new ApiError(403, "Old password is incorrect");
+    }
+    const hashedNewPassword = await HashPassword.hash(payload?.newPassword);
+    IsUserAvailable.password = hashedNewPassword;
+    await IsUserAvailable.save();
+    return IsUserAvailable;
+  }
+
+  async updateUser(user_id: string, payload: Partial<IUser>) {
+    const isUserExist = await User.findById(user_id);
+    if (!isUserExist) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const result = await User.findByIdAndUpdate(user_id, payload, {
+      new: true,
+    }).select({
+      password: 0,
+    });
+    return result;
   }
 }
 
