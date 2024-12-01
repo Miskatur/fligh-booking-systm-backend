@@ -4,6 +4,8 @@ import { HashPassword } from "../../shared/hashPassword";
 import JwtHelpers from "../../shared/jsonWebTokenHelpers";
 import { IUser } from "./user.interface";
 import User from "./user.model";
+import Flights from "../flights/flights.model";
+import Bookings from "../bookings/bookings.model";
 
 class Service {
   async registerUser(payload: IUser) {
@@ -88,12 +90,57 @@ class Service {
       throw new ApiError(404, "User not found");
     }
 
-    const result = await User.findByIdAndUpdate(user_id, payload, {
+    const userData: any = await User.findByIdAndUpdate(user_id, payload, {
       new: true,
     }).select({
       password: 0,
     });
-    return result;
+
+    const token = JwtHelpers.createToken(
+      {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        phone: userData.phone,
+      },
+      process.env.JWT_ACCESS_TOKEN_SECRET as Secret,
+      "1yr"
+    );
+    return {
+      data: userData,
+      accessToken: token,
+    };
+  }
+
+  async overViewData() {
+    const now = new Date();
+    const usersCount = await User.countDocuments({ role: "USER" });
+    const availableFlight = await Flights.countDocuments({
+      $or: [
+        {
+          date: now.toISOString().split("T")[0],
+          time: { $gt: now.toTimeString().slice(0, 5) },
+        },
+        { date: { $gt: now.toISOString().split("T")[0] } },
+      ],
+    });
+    const flightsCount = await Flights.countDocuments({});
+    const bookingsCount = await Bookings.countDocuments({});
+    const cancelBookingsCount = await Bookings.countDocuments({
+      booking_status: "CANCELLED",
+    });
+    const confirmedBookingsCount = await Bookings.countDocuments({
+      booking_status: "CONFIRMED",
+    });
+    return {
+      usersCount,
+      availableFlight,
+      flightsCount,
+      bookingsCount,
+      cancelBookingsCount,
+      confirmedBookingsCount,
+    };
   }
 }
 

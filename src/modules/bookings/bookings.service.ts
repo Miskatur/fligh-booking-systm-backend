@@ -273,6 +273,7 @@ class Service {
       throw error;
     }
   }
+
 }
 
 export const BookingsService = new Service();

@@ -183,7 +183,7 @@ class Service {
     if (destination) {
       andConditions.push({ destination: destination });
     }
-    if (date) {
+    if (date && date !== undefined) {
       andConditions.push({ date: date });
     }
     const now = new Date();

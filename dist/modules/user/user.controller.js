@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const baseController_1 = __importDefault(require("../../shared/baseController"));
 const user_service_1 = require("./user.service");
+const error_1 = __importDefault(require("../../middleware/error"));
 class Controller extends baseController_1.default {
     constructor() {
         super(...arguments);
@@ -53,6 +54,19 @@ class Controller extends baseController_1.default {
                 statusCode: 200,
                 success: true,
                 message: "Profile updated successfully",
+                data: result,
+            });
+        }));
+        this.overViewData = this.catchAsync((req, res) => __awaiter(this, void 0, void 0, function* () {
+            const role = req.role;
+            if (role !== "ADMIN") {
+                throw new error_1.default(401, "You are not allowed to retrieve all Overview data");
+            }
+            const result = yield user_service_1.UserService.overViewData();
+            this.sendResponse(res, {
+                statusCode: 200,
+                success: true,
+                message: "Overview data retrieved successfully",
                 data: result,
             });
         }));

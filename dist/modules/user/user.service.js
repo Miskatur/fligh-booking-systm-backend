@@ -17,6 +17,8 @@ const error_1 = __importDefault(require("../../middleware/error"));
 const hashPassword_1 = require("../../shared/hashPassword");
 const jsonWebTokenHelpers_1 = __importDefault(require("../../shared/jsonWebTokenHelpers"));
 const user_model_1 = __importDefault(require("./user.model"));
+const flights_model_1 = __importDefault(require("../flights/flights.model"));
+const bookings_model_1 = __importDefault(require("../bookings/bookings.model"));
 class Service {
     registerUser(payload) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -82,12 +84,53 @@ class Service {
             if (!isUserExist) {
                 throw new error_1.default(404, "User not found");
             }
-            const result = yield user_model_1.default.findByIdAndUpdate(user_id, payload, {
+            const userData = yield user_model_1.default.findByIdAndUpdate(user_id, payload, {
                 new: true,
             }).select({
                 password: 0,
             });
-            return result;
+            const token = jsonWebTokenHelpers_1.default.createToken({
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,
+                role: userData.role,
+                phone: userData.phone,
+            }, process.env.JWT_ACCESS_TOKEN_SECRET, "1yr");
+            return {
+                data: userData,
+                accessToken: token,
+            };
+        });
+    }
+    overViewData() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const now = new Date();
+            const usersCount = yield user_model_1.default.countDocuments({ role: "USER" });
+            const availableFlight = yield flights_model_1.default.countDocuments({
+                $or: [
+                    {
+                        date: now.toISOString().split("T")[0],
+                        time: { $gt: now.toTimeString().slice(0, 5) },
+                    },
+                    { date: { $gt: now.toISOString().split("T")[0] } },
+                ],
+            });
+            const flightsCount = yield flights_model_1.default.countDocuments({});
+            const bookingsCount = yield bookings_model_1.default.countDocuments({});
+            const cancelBookingsCount = yield bookings_model_1.default.countDocuments({
+                booking_status: "CANCELLED",
+            });
+            const confirmedBookingsCount = yield bookings_model_1.default.countDocuments({
+                booking_status: "CONFIRMED",
+            });
+            return {
+                usersCount,
+                availableFlight,
+                flightsCount,
+                bookingsCount,
+                cancelBookingsCount,
+                confirmedBookingsCount,
+            };
         });
     }
 }

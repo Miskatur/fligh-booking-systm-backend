@@ -47,6 +47,24 @@ class Controller extends BaseController {
       data: result,
     });
   });
+
+  overViewData = this.catchAsync(async (req: Request, res: Response) => {
+    const role = req.role;
+    if (role !== "ADMIN") {
+      throw new ApiError(
+        401,
+        "You are not allowed to retrieve all Overview data"
+      );
+    }
+    const result = await UserService.overViewData();
+
+    this.sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Overview data retrieved successfully",
+      data: result,
+    });
+  });
 }
 
 export const UserController = new Controller();
